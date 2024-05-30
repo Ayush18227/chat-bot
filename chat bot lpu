@@ -1,0 +1,148 @@
+import re
+import random
+
+# Define the intents
+intents = [
+    {
+        "tag": "greeting",
+        "patterns": ["hello", "hi", "hey", "what's up"],
+        "responses": ["Hi there!", "Hello!", "Hey!", "Hi! How can I assist you today?"]
+    },
+    {
+        "tag": "goodbye",
+        "patterns": ["bye", "goodbye", "see you later", "talk to you later"],
+        "responses": ["Goodbye!", "See you later!", "Take care!", "Have a great day!"]
+    },
+    {
+        "tag": "students",
+        "patterns": ["students", "class", "number of students", "how many students"],
+        "responses": ["There are 72 students in the class.", "We have 72 students enrolled."]
+    },
+    {
+        "tag": "college",
+        "patterns": ["college", "Lovely Professional University", "LPU", "courses"],
+        "responses": ["Lovely Professional University offers a wide range of courses in various disciplines.", "LPU provides diverse academic programs."]
+    },
+    {
+        "tag": "teacher",
+        "patterns": ["teacher", "Java teacher", "Maths teacher", "Analytical Skills teacher", "Operating System teacher"],
+        "responses": ["Your Java teacher is Puneet Kumar. Maths teacher is Mamta Kapoor. Analytical Skills teacher is Vikas Chaudhry. Operating System teacher is Kirti."]
+    },
+    {
+        "tag": "library",
+        "patterns": ["library", "books", "study materials"],
+        "responses": ["The library is open from 8 AM to 8 PM. You can find a variety of books and study materials there."]
+    },
+    {
+        "tag": "canteen",
+        "patterns": ["canteen", "food", "lunch", "snacks"],
+        "responses": ["The canteen offers a wide range of food items including lunch and snacks. It's open from 9 AM to 7 PM."]
+    },
+    {
+        "tag": "how_are_you",
+        "patterns": ["how are you", "how's it going", "how are you doing"],
+        "responses": ["I'm just a program, but I'm here to help you!", "I'm functioning as expected. How can I assist you today?"]
+    },
+    {
+        "tag": "bot_identity",
+        "patterns": ["who are you", "what are you", "are you a bot", "are you real"],
+        "responses": ["I'm an AI chatbot created to assist you with information about LPU and general queries.", "I am a virtual assistant here to help with your questions."]
+    },
+    {
+        "tag": "weather",
+        "patterns": ["what's the weather like", "current weather", "weather today"],
+        "responses": ["I can't check real-time weather, but you can visit [Weather.com](https://weather.com) or [AccuWeather](https://www.accuweather.com) for the latest updates.", "Check the weather at [Weather.com](https://weather.com) or [AccuWeather](https://www.accuweather.com)."]
+    },
+    {
+        "tag": "help",
+        "patterns": ["help", "assist me", "I need help"],
+        "responses": ["Sure, I'm here to help! You can ask me about the college, teachers, library, and more."]
+    },
+    {
+        "tag": "campus_facilities",
+        "patterns": ["campus facilities", "facilities", "campus amenities"],
+        "responses": ["Our campus includes a library, sports complex, health center, and numerous dining options.", "We have a well-equipped library, sports facilities, and various dining options on campus."]
+    },
+    {
+        "tag": "hostel_info",
+        "patterns": ["hostel", "hostel facilities", "hostel info"],
+        "responses": ["The hostels are equipped with Wi-Fi, laundry services, and 24/7 security.", "We provide comfortable hostel accommodations with all essential amenities."]
+    },
+    {
+        "tag": "exam_schedule",
+        "patterns": ["exam schedule", "examinations", "exam dates"],
+        "responses": ["The examination schedule is available on the university's official website under the academic calendar section.", "You can check the examination dates on the LPU website under the academic calendar."]
+    },
+    {
+        "tag": "admission_process",
+        "patterns": ["admission", "admission process", "how to apply"],
+        "responses": ["The admission process involves filling out an online application form, submitting required documents, and appearing for an entrance test if necessary.", "You can apply for admission online, submit the necessary documents, and take the entrance test if required."]
+    },
+    {
+        "tag": "scholarships",
+        "patterns": ["scholarships", "financial aid", "scholarship opportunities"],
+        "responses": ["LPU offers various scholarships based on academic merit, sports achievements, and other criteria.", "You can apply for scholarships at LPU based on your academic performance, sports achievements, and other qualifications."]
+    },
+    {
+        "tag": "sports_activities",
+        "patterns": ["sports", "sports activities", "sports facilities"],
+        "responses": ["Our campus has facilities for various sports including football, basketball, and tennis. We also have a gym and swimming pool.", "We offer sports facilities for football, basketball, tennis, and more. There’s also a gym and swimming pool available."]
+    },
+    {
+        "tag": "cultural_events",
+        "patterns": ["cultural events", "events", "cultural activities"],
+        "responses": ["LPU hosts numerous cultural events throughout the year including festivals, music concerts, and drama performances.", "You can enjoy various cultural activities at LPU like festivals, concerts, and theatre performances."]
+    }
+]
+
+# Define the function to get the best response based on the user input
+def get_response(user_input):
+    split_message = re.split(r'\s+|[,;?!.-]\s*', user_input.lower())
+    highest_prob_list = {}
+
+    # Helper function to calculate the match score
+    def calculate_match_score(pattern, split_message):
+        pattern_words = set(pattern.lower().split())
+        message_words = set(split_message)
+        matching_words = pattern_words & message_words
+        score = len(matching_words) / len(pattern_words)
+        return score
+
+    # Find the best matching intent
+    for intent in intents:
+        for pattern in intent["patterns"]:
+            score = calculate_match_score(pattern, split_message)
+            if score > 0.5:
+                if intent["tag"] in highest_prob_list:
+                    highest_prob_list[intent["tag"]] = max(highest_prob_list[intent["tag"]], score)
+                else:
+                    highest_prob_list[intent["tag"]] = score
+
+    # Determine the best intent
+    best_intent = max(highest_prob_list, key=highest_prob_list.get, default=None)
+
+    # Generate response based on the best intent
+    if best_intent:
+        for intent in intents:
+            if intent["tag"] == best_intent:
+                response = random.choice(intent["responses"])
+                break
+    else:
+        response = "I'm sorry, I do not understand. Can you please rephrase?"
+
+    return response
+
+# Command-line interface for the chatbot
+def chatbot_interface():
+    print("Welcome to the LPU Chatbot! Type 'exit' or 'quit' to end the conversation.")
+    while True:
+        user_input = input("You: ")
+        if user_input.lower() in ["exit", "quit"]:
+            print("Bot: Goodbye!")
+            break
+        response = get_response(user_input)
+        print("Bot:", response)
+
+# Run the chatbot
+if __name__ == "__main__":
+    chatbot_interface()
